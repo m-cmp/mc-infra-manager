@@ -1,8 +1,8 @@
-# mc-infra-manager
+# M-CMP Infra Manager
 
 This repository provides a Multi-Cloud Infra Management Framework. 
 
-A sub-system of M-CMP platform to deploy and manage Multi-Cloud Infrastructures. 
+A sub-system of [M-CMP platform](https://github.com/m-cmp/docs/tree/main) to deploy and manage Multi-Cloud Infrastructures. 
 
 ([Cloud-Barista/CB-Tumblebug](https://github.com/cloud-barista/cb-tumblebug) mirroring for M-CMP)
 
