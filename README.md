@@ -15,6 +15,8 @@ A sub-system of [M-CMP platform](https://github.com/m-cmp/docs/tree/main) to dep
 
 ## How to Use
 
+- clone this repo
+- update submodule (git submodule init; git submodule update)
 - [Refer to the method of running CB-Tumblebug](https://github.com/cloud-barista/cb-tumblebug/blob/main/README.md#cb-tumblebug-%EC%8B%A4%ED%96%89-%EB%B0%A9%EB%B2%95)
 
 ## How to Contribute
