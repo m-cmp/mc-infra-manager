@@ -16,25 +16,17 @@ jobs:
 
     # Create a bin directory in the runner's home
     - name: Create bin directory
-      run: mkdir -p $HOME/bin
-
-    # Install the latest jq from GitHub releases
-    - name: Install jq
       run: |
-        jq_latest=$(curl --silent -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/stedolan/jq/releases/latest" | jq -r '.assets[].browser_download_url | select(endswith("jq-linux64"))')
-        wget $jq_latest -O $HOME/bin/jq
+        mkdir -p $HOME/bin
+        echo "$HOME/bin" >> $GITHUB_PATH
+
+    # Install the latest jq and yq from GitHub releases
+    - name: Install jq and yq
+      run: |
+        wget https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64 -O $HOME/bin/jq
         chmod +x $HOME/bin/jq
-
-    # Add the bin directory to PATH
-    - name: Add bin to PATH
-      run: echo "$HOME/bin" >> $GITHUB_PATH
-
-    # Install the latest yq from GitHub releases
-    - name: Install yq
-      run: |
-        yq_latest=$(curl --silent -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r '.assets[].browser_download_url | select(endswith("yq_linux_amd64"))')
-        wget $yq_latest -O $HOME/bin/yq
-        chmod +x $HOME/bin/yq
+        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O $HOME/bin/yq
+        chmod +x $HOME/bin/yq      
         
     # Main logic for adding comments based on labels.
     - name: Comment on PR based on external config
