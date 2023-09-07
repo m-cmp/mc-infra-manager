@@ -1,0 +1,11 @@
+label_mappings:
+  - labels: 
+      - duplicate
+    comment: This PR is duplicated. Please check other PRs.
+  - labels: 
+      - wip
+    comment: This PR is WIP. Should not be merged.
+  - labels: 
+      - wontfix
+      - invalid
+    comment: This PR is invalid so wontfixed. Will be closed soon.
