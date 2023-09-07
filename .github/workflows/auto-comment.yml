@@ -54,9 +54,13 @@ jobs:
             fi
           done
           
+          # Fetch the PR number from the GitHub event JSON.
+          pr_number=$(jq -r '.pull_request.number' "$GITHUB_EVENT_PATH")
+          
           # If all required labels are found, add the comment to the PR.
           echo "All required labels found. Adding comment."
-          gh pr comment "$GITHUB_HEAD_REF" --body "$comment"
+          gh pr comment "$pr_number" --body "$comment"
+
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
