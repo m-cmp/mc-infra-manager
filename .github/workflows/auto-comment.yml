@@ -1,0 +1,53 @@
+name: Auto Comment on Labeled PR
+
+on:
+  pull_request:
+    types:
+      - labeled
+      - unlabeled
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+    # Checkout the repository code to the runner.
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Install yq tool for parsing YAML files.
+    - name: Install yq for YAML parsing
+      run: sudo apt-get update && sudo apt-get install -y jq yq
+
+    # Main logic for adding comments based on labels.
+    - name: Comment on PR based on external config
+      run: |
+        # Fetch the labels attached to the PR from the GitHub event JSON.
+        pr_labels=$(jq -r '.pull_request.labels[] | .name' "$GITHUB_EVENT_PATH" | tr '\n' ' ')
+        
+        # Define the path to the external YAML config file.
+        config_file=".github/auto-comment-config.yaml"
+        
+        # Get the number of label-comment mappings defined in the config file.
+        num_mappings=$(yq e '.label_mappings | length' "$config_file")
+        
+        # Loop through each label-comment mapping in the config file.
+        for (( i=0; i<$num_mappings; i++ )); do
+          # Fetch the labels and comment for the current mapping.
+          mapfile -t labels < <(yq e --arg i "$i" '.label_mappings[$i | tonumber].labels[]' "$config_file")
+          comment=$(yq e --arg i "$i" '.label_mappings[$i | tonumber].comment' "$config_file")
+          
+          # Check if all required labels from the current mapping are present in the PR.
+          for label in "${labels[@]}"; do
+            if [[ ! $pr_labels == *"$label"* ]]; then
+              echo "One or more required labels not found. Skipping."
+              continue 2  # Skip to the next iteration of the outer loop.
+            fi
+          done
+          
+          # If all required labels are found, add the comment to the PR.
+          echo "All required labels found. Adding comment."
+          gh pr comment "$GITHUB_HEAD_REF" --body "$comment"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
