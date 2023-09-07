@@ -14,10 +14,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Install yq tool for parsing YAML files.
-    - name: Install yq for YAML parsing
-      run: sudo apt-get update && sudo apt-get install -y jq yq
+    # Install the latest yq and jq from GitHub releases
+    - name: Install yq
+      run: |
+        yq_latest=$(curl --silent "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r '.assets[].browser_download_url | select(endswith("yq_linux_amd64"))')
+        wget $yq_latest -O /usr/bin/yq
+        chmod +x /usr/bin/yq
 
+    # Install the latest jq from GitHub releases
+    - name: Install jq
+      run: |
+        jq_latest=$(curl --silent "https://api.github.com/repos/stedolan/jq/releases/latest" | jq -r '.assets[].browser_download_url | select(endswith("jq-linux64"))')
+        wget $jq_latest -O /usr/bin/jq
+        chmod +x /usr/bin/jq
+        
     # Main logic for adding comments based on labels.
     - name: Comment on PR based on external config
       run: |
