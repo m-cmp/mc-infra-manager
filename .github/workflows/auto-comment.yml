@@ -1,7 +1,7 @@
 name: Auto Comment on Labeled PR
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - labeled
       - unlabeled
