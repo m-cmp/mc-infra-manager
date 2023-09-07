@@ -14,13 +14,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Install the latest yq from GitHub releases
-    - name: Install yq
-      run: |
-        yq_latest=$(curl --silent "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r '.assets[].browser_download_url | select(endswith("yq_linux_amd64"))')
-        wget $yq_latest -O $HOME/bin/yq
-        chmod +x $HOME/bin/yq
-
     # Install the latest jq from GitHub releases
     - name: Install jq
       run: |
@@ -31,6 +24,13 @@ jobs:
     # Add the bin directory to PATH
     - name: Add bin to PATH
       run: echo "$HOME/bin" >> $GITHUB_PATH
+
+    # Install the latest yq from GitHub releases
+    - name: Install yq
+      run: |
+        yq_latest=$(curl --silent "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r '.assets[].browser_download_url | select(endswith("yq_linux_amd64"))')
+        wget $yq_latest -O $HOME/bin/yq
+        chmod +x $HOME/bin/yq
         
     # Main logic for adding comments based on labels.
     - name: Comment on PR based on external config
