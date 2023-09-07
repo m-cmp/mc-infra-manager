@@ -43,9 +43,9 @@ jobs:
         # Loop through each label-comment mapping in the config file.
         for (( i=0; i<$num_mappings; i++ )); do
           # Fetch the labels and comment for the current mapping.
-          mapfile -t labels < <(yq e --arg i "$i" '.label_mappings[$i | tonumber].labels[]' "$config_file")
-          comment=$(yq e --arg i "$i" '.label_mappings[$i | tonumber].comment' "$config_file")
-          
+          mapfile -t labels < <(yq e ".label_mappings[$i].labels[]" "$config_file")
+          comment=$(yq e ".label_mappings[$i].comment" "$config_file")
+
           # Check if all required labels from the current mapping are present in the PR.
           for label in "${labels[@]}"; do
             if [[ ! $pr_labels == *"$label"* ]]; then
