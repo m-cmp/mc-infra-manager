@@ -1,0 +1,68 @@
+# Check auto merge contiditons of PR and proceed merging
+name: "Auto-merge in condition"
+
+# Event on a comment (in PR)
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  # Check auto merge contiditons of PR and proceed merging
+  automerge:  
+    # Apply this job if it is a PR and by OWNER with '/approve' comment
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/approve') }}
+    
+    # This job runs on Ubuntu-latest (Ubuntu 20.04 LTS checked on 2022-09-06)
+    # See https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+    runs-on: ubuntu-latest
+    steps:
+      # Check the commenter is a member of the maintainer team of this repo
+      - name: Extract Repository Name
+        id: repo-name
+        run: echo "REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)" >> $GITHUB_ENV
+        
+      - name: Get Maintainer Team Members
+        id: check-team-members
+        run: |
+          TEAM_NAME="${{ env.REPO_NAME }}-maintainer"
+          echo "GITHUB_ACTOR: ${GITHUB_ACTOR} / TEAM_NAME: ${TEAM_NAME}"
+
+          TEAM_MEMBERS=$(curl -L \
+                          -H "Accept: application/vnd.github+json" \
+                          -H "Authorization: Bearer ${{ secrets.CR_PAT }}" \
+                          -H "X-GitHub-Api-Version: 2022-11-28" \
+                          https://api.github.com/orgs/m-cmp/teams/${TEAM_NAME}/members | jq -r '.[] | .login' | tr '\n' ',')
+          echo "TEAM_MEMBERS=$TEAM_MEMBERS" >> $GITHUB_ENV
+          echo "TEAM_MEMBERS: ${TEAM_MEMBERS}"
+          
+      - name: Verify if GITHUB_ACTOR is a Maintainer Team Member
+        run: |
+          TEAM_MEMBERS_ARRAY=(${TEAM_MEMBERS//,/ })
+          if [[ ! " ${TEAM_MEMBERS_ARRAY[@]} " =~ " ${GITHUB_ACTOR} " ]]; then
+            echo "User ${GITHUB_ACTOR} is not a member of the team. Stopping workflow."
+            exit 1
+          fi
+      
+      # Apply 'approved' label when OWNER left '/approve' comment
+      - uses: actions/checkout@v4
+      - uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          labels: |
+            approved
+      
+      # AutoMerging if this PR has MERGE_LABELS: approved, lgtm (not wip, hold)
+      - name: automerge-lgtm-approved
+        uses: "pascalgn/automerge-action@v0.15.6"
+        with:
+          args: "--trace"
+        env:
+          GITHUB_TOKEN: "${{ secrets.CR_PAT }}"
+          MERGE_LABELS: "approved,!wip,!hold"
+          MERGE_REMOVE_LABELS: ""
+          MERGE_METHOD: "merge"
+          MERGE_COMMIT_MESSAGE: "pull-request-title"
+          MERGE_FORKS: "true"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "10000"
+          UPDATE_LABELS: "automerge"
+          UPDATE_METHOD: "merge"
