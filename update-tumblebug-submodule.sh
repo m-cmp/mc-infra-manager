@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Initialize and update submodule if not already done
+if [ ! -d "cb-tumblebug/.git" ]; then
+  echo "Initializing and updating CB-Tumblebug submodule..."
+  git submodule update --init --recursive cb-tumblebug
+  if [ $? -ne 0 ]; then
+    echo "Error: Failed to initialize submodule"
+    exit 1
+  fi
+fi
+
 cd cb-tumblebug || { echo "Error: Failed to enter cb-tumblebug directory."; exit 1; }
 
 # Fetch all tags from the remote repository
